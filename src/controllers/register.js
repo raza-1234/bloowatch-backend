@@ -18,7 +18,7 @@ const registerUser = async(req, res) => {
       where: { email }
     })
     if (existingUser){
-      return res.status(400).send("Entered Email Is Already Registered.")
+      return res.status(400).json({"message": "Entered Email Is Already Registered."})
     }
 
     const encryptedPassword = await bcrypt.hash(password, 10)
@@ -33,9 +33,9 @@ const registerUser = async(req, res) => {
     const url = `${process.env.BASE_URL}/verify_email/${registerNewUser.id}`;
     await sendEmail(registerNewUser.email, "Verify Email By Entering The Provided-Token Code In Website", url, newUser.email_token);
 
-    return res.status(200).send("An Email Is Sent To Your Account. Please Verify Your Email.")
+    return res.status(200).json({"message": "An Email Is Sent To Your Account. Please Verify Your Email."})
   } catch (err){
-    return res.status(500).send(err)
+    return res.status(500).json({"message": err})
   }
 }
 

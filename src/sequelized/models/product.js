@@ -3,54 +3,55 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class users extends Model {
+  class products extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
-    static associate({cartProducts}) {
+    static associate(models) {
       // define association here
-      // this.hasMany(cartProducts, {foreignKey: "userId", as: "userCartProducts"})
+      // this.hasOne(cartProducts, {foreignKey: "productId", as: ""})
     }
-
-    toJSON() {
-      return {...this.get(), password: undefined, createdAt: undefined, updatedAt: undefined}
-    }
-
   }
-  users.init({
+  products.init({
     id: {
       allowNull: false,
       autoIncrement: true,
       primaryKey: true,
       type: DataTypes.INTEGER
     },
-    name: {
+    title: {
       type: DataTypes.STRING,
       allowNull: false
     },
-    email: {
-      type: DataTypes.STRING,
+    quantity: {
       allowNull: false,
-      unique: true
+      type: DataTypes.INTEGER
     },
-    password: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    verified: {
-      type: DataTypes.BOOLEAN,
+    price: {
       allowNull: false,
-      defaultValue: false
+      type: DataTypes.STRING
     },
-    email_token: {
-      type: DataTypes.STRING,
+    category: {
       allowNull: false,
+      type: DataTypes.ARRAY(DataTypes.STRING)
+    },
+    image: {
+      allowNull: false,
+      type: DataTypes.STRING
+    },
+    createdAt: {
+      allowNull: false,
+      type: DataTypes.DATE
+    },
+    updatedAt: {
+      allowNull: false,
+      type: DataTypes.DATE
     }
   }, {
     sequelize,
-    modelName: 'users',
+    modelName: 'products',
   });
-  return users;
+  return products;
 };

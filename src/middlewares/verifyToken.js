@@ -2,18 +2,28 @@ const jwt = require("jsonwebtoken")
 require("dotenv").config();
 
 const verifyToken = (req, res, next) => {
-  const cookie = req.cookies;
-  if (!cookie?.jwt){ 
-    return res.status(403).send("You Are Logged Out")
+
+  const cookieToken = req.cookies
+  const authToken = req.headers.authorization
+
+  if (!cookieToken?.jwt || !authToken){
+    return res.status(403).json({"message":  "You are not logged in."})
   }
-  const token = cookie.jwt
+
+  const token = authToken.split(" ")[1];
+
+  if (cookieToken.jwt !== token){
+    return res.status(403).json({"message": "Header's token does not match with token in cookie."})
+  }
+
   jwt.verify(
     token,
     process.env.ACCESS_SECRET_KEY,
-    (err) => {
+    (err, decodeToken) => {
       if(err){
         return res.sendStatus(403);
       }
+      req.userId = decodeToken.userId;
       next();
     }
   )
