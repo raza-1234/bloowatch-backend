@@ -6,8 +6,7 @@ const bcrypt = require("bcrypt")
 const { registerUserValidation } = require("../validation/validation")
 require("dotenv").config();
 
-const registerUser = async(req, res) => {
-
+const registerUser = async (req, res) => {
   const validation = registerUserValidation(req, res);
   if (!validation) return;
 
@@ -35,6 +34,7 @@ const registerUser = async(req, res) => {
 
     return res.status(200).json({"message": "An Email Is Sent To Your Account. Please Verify Your Email."})
   } catch (err){
+    console.log(err);
     return res.status(500).json({"message": err})
   }
 }

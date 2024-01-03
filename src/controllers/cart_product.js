@@ -1,21 +1,20 @@
 const {products, cartProducts, users} = require("../sequelized/models")
+const {checkUser} = require("../utils/checkUser")
 
 const addToCart = async (req, res) => {
-  const {productId, userId} = req.params;
-  const tokenId = req.userId
 
-  if (userId != tokenId){ //matching values only
+  const productId = Number(req.params.productId)
+  const userId = Number(req.params.userId)
+  const tokenUserId = req.userId
+
+  if (userId !== tokenUserId){ 
     return res.status(403).json({"message": "Access denied."})
   }
 
-  if (!(productId.trim().length > 0 && userId.trim().length > 0)){
-    return res.status(400).json({"message": "Empty params are not allowed."})
+  if (!productId){
+    return res.status(400).json({"message": "Required parameters should be proper number type."})
   }
   
-  if (isNaN(productId) || isNaN(userId)){
-    return res.status(400).json({"message": "productId and userId must be of number type."})
-  }
-
   try {
     const productExist = await products.findOne({
       where: {
@@ -24,7 +23,7 @@ const addToCart = async (req, res) => {
     })
 
     if (!productExist){
-      return res.status(400).json({"message":`Product with id ${productId} does not exist.`})
+      return res.status(400).json({"message":`Required product not found.`})
     }
 
     const cartItemExist = await cartProducts.findOne({
@@ -42,33 +41,31 @@ const addToCart = async (req, res) => {
       } 
       return res.status(400).json({"message": "Product is out of stock."});
     } else {
-      const newiItemToCart = {
+      const newItemToCart = {
         quantity: 1,
         productId,
         userId
       }
-      await cartProducts.create(newiItemToCart);
+      await cartProducts.create(newItemToCart);
       return res.status(200).json({"message": "Product added in cart."})
     }
   } catch (err){
+    console.log(err);
     return res.status(500).json({"errorMessage": err})
   }
 }
 
-const removeFromCart = async(req, res) => {
-  const {productId, userId} = req.params;
-  const tokenId = req.userId
+const removeFromCart = async (req, res) => {
+  const productId = Number(req.params.productId)
+  const userId = Number(req.params.userId)
+  const tokenUserId = req.userId
 
-  if (userId != tokenId){ //matching values only
+  if (userId !== tokenUserId){ 
     return res.status(403).json({"message": "Access denied."})
   }
 
-  if (!(productId.trim().length > 0 && userId.trim().length > 0)){
-    return res.status(400).json({"message": "Empty params are not allowed."})
-  }
-
-  if (isNaN(productId) || isNaN(userId)){
-    return res.status(400).json({"message": "productId and userId must be of number type."})
+  if (!productId){
+    return res.status(400).json({"message": "Required parameters should be proper number type."})
   }
 
   try {
@@ -98,31 +95,18 @@ const removeFromCart = async(req, res) => {
   }
 }
 
-const getCartProducts = async(req, res) => {
-  const { userId } = req.params;
-  const tokenId = req.userId
+const getCartProducts = async (req, res) => {
+  const userId = Number(req.params.userId);
+  const tokenUserId = req.userId
 
-  if (userId != tokenId){ //matching values only
+  if (userId !== tokenUserId){ 
     return res.status(403).json({"message": "Access denied."})
   }
 
-  if (userId.trim().length === 0){
-    return res.status(400).json({"message": "Empty params are not allowed."})
-  }
-
-  if (isNaN(userId)){
-    return res.status(400).json({"message": "productId and userId must be of number type."})
-  }
-
   try {
-    const userExist = await users.findOne({
-      where: {
-        id: userId
-      }
-    })
-
+    const userExist = await checkUser(userId);
     if (!userExist){
-      return res.status(400).json({"message": `userId ${userId} does not exist.`})
+      return res.status(400).json({"message":  `userId ${userId} does not exist.`})
     }
 
     const cartData = await cartProducts.findAll({
@@ -132,10 +116,11 @@ const getCartProducts = async(req, res) => {
     })
 
     if (cartData.length === 0){
-      return res.status(200).json({"message": `No data exist in cart for userId ${userId}`})
+      return res.status(200).json({"message": `No data exists in the cart for the required user.`})
     }
     return res.status(200).json(cartData)
   } catch (err){
+    console.log(err);
     return res.status(500).json({"message": err})
   }
 }

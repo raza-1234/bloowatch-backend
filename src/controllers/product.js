@@ -1,16 +1,12 @@
 const {products} = require("../sequelized/models");
 const {Op} = require("sequelize")
 
-const addProduct = async(req, res) => {
+const addProduct = async (req, res) => {
   const { title, quantity, price, category } = req.body;
   const imagePath = req.file.path;
 
-  if (!(title && quantity && price && category)){
+  if (!(title?.trim() && quantity && price?.trim() && category?.trim())){
     return res.status(400).json({"message": "All Fields Are Required."})
-  }
-
-  else if (title.trim().length === 0 || price.trim().length === 0 || category.trim().length === 0){
-    return res.status(400).json({"message": "Fields Can Not Be Empty."})
   }
 
   try {
@@ -24,14 +20,15 @@ const addProduct = async(req, res) => {
     const addNewProduct = await products.create(newProduct);
     return res.status(200).json(addNewProduct)
   }catch (err){
+    console.log(err);
     return res.status(500).json({"errorMessage": err})
   }
 }
 
-const getProducts = async(req, res) => {
-  const { category } = req.params;
+const getProducts = async (req, res) => {
+  const category = req.params.category.trim();
 
-  if (category.trim().length === 0){
+  if (!category){
     return res.status(400).json({"message": "Category can not be empty."})
   }
 
