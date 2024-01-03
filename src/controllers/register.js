@@ -4,6 +4,7 @@ const crypto = require("crypto")
 const { sendEmail } = require("../utils/sendEmail")
 const bcrypt = require("bcrypt")
 const { registerUserValidation } = require("../validation/validation")
+const { checkUserByEmail } = require("../utils/checkUser")
 require("dotenv").config();
 
 const registerUser = async (req, res) => {
@@ -13,9 +14,8 @@ const registerUser = async (req, res) => {
   const { name, email, password } = validation
 
   try {
-    const existingUser = await users.findOne({
-      where: { email }
-    })
+
+    const existingUser = await checkUserByEmail(email);
     if (existingUser){
       return res.status(400).json({"message": "Entered Email Is Already Registered."})
     }
@@ -25,7 +25,7 @@ const registerUser = async (req, res) => {
       name,
       email,
       password: encryptedPassword,
-      email_token: crypto.randomBytes(8).toString("hex")
+      email_token: crypto.randomBytes(3).toString("hex")
     } 
 
     const registerNewUser = await users.create(newUser)

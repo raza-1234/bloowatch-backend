@@ -1,12 +1,13 @@
 const {products} = require("../sequelized/models");
 const {Op} = require("sequelize")
+const paging = require("../utils/pagination")
 
 const addProduct = async (req, res) => {
   const { title, quantity, price, category } = req.body;
   const imagePath = req.file.path;
 
   if (!(title?.trim() && quantity && price?.trim() && category?.trim())){
-    return res.status(400).json({"message": "All Fields Are Required."})
+    return res.status(400).json({"message": "Required cannot be empty."})
   }
 
   try {
@@ -14,7 +15,7 @@ const addProduct = async (req, res) => {
       title,
       quantity,
       price,
-      category: category.replace(/\s+/g, '').split(","),
+      category,
       image: imagePath
     }
     const addNewProduct = await products.create(newProduct);
@@ -26,33 +27,59 @@ const addProduct = async (req, res) => {
 }
 
 const getProducts = async (req, res) => {
-  const category = req.params.category.trim();
-
-  if (!category){
-    return res.status(400).json({"message": "Category can not be empty."})
-  }
-
+  const category = req.query.category?.trim();
+  const search = req.query.search?.trim();
   const page = Number(req.query.page) || 1;
-  const limit = Number(req.query.limit) || 3;
-  const skip = (page - 1) * limit;
+  const limit = Number(req.query.limit) || 100;
+  const skip = (page - 1) * limit
+  let totalCount;
+  let data;
 
   try {
-    const allProducts = await products.findAll({
-      order: [['id', 'ASC']],
-      where: { 
-        category: {
-          [Op.overlap]: [category]
-        }
-      },
-      limit: limit,
-      offset: skip
-    })
-
-    if (allProducts.length === 0){
-      return res.status(200).json({"message": `Product of category ${category} does not exist.`})
+    if (!category && !search){
+      let { count, rows } = await products.findAndCountAll({
+        order: [['id', 'ASC']],
+        limit: limit ,
+        offset: skip
+      })
+      data = rows;
+      totalCount = count;
+    }
+    else if (!category){
+      let { count , rows } = await products.findAndCountAll({
+        order: [['id', 'ASC']],
+        where: {
+          title: {
+            [Op.like]: `%${search}%`
+          }
+        },
+        limit: limit,
+        offset: skip
+      });
+      data = rows;
+      totalCount = count;
+    }
+    else {
+      let { count, rows } = await products.findAndCountAll({
+        order: [['id', 'ASC']],
+        where: { 
+          category: {
+            [Op.overlap]: [category]
+          }
+        },
+        limit: limit,
+        offset: skip
+      })
+      totalCount = count;
+      data = rows;
     }
 
-    return res.status(200).json(allProducts)
+    if (data.length === 0){
+      return res.status(200).json({"message": `No Product Exist.`})
+    }
+
+    const dataPagination = paging(page, limit, data, totalCount);
+    return res.status(200).json(dataPagination)
   } catch (err){
     console.log(err);
     return res.status(500).json({"message": err})

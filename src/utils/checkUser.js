@@ -1,6 +1,6 @@
 const {users} = require("../sequelized/models")
 
-const checkUser = async (id) => {
+const checkUserById = async (id) => {
   try {
     const userExist = await users.findOne({
       where: {
@@ -10,11 +10,26 @@ const checkUser = async (id) => {
     if (!userExist){
       return false;
     }
-
     return userExist;
-  } catch(err) {
+  } catch (err){
     console.log(err);
   }
-}
+};
 
-module.exports = {checkUser}
+const checkUserByEmail = async (email) => {
+  try {
+    const userExist = await users.findOne({
+      where: {
+        email
+      }
+    })
+    if (!userExist){
+      return false;
+    }
+    return userExist;
+  } catch (err){
+    console.log(err);
+  }
+};
+
+module.exports = { checkUserById, checkUserByEmail }

@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken")
 const {userAuthorizationValidation} = require("../validation/validation")
 const crypto = require("crypto")
 const {sendEmail} = require("../utils/sendEmail")
+const {checkUserByEmail} = require("../utils/checkUser")
 require("dotenv").config()
 
 const logIn = async(req, res) => {
@@ -12,10 +13,7 @@ const logIn = async(req, res) => {
   const { email, password } = validation;
 
   try  {
-    const userExist = await users.findOne({ 
-      where: { email }
-    });
-
+    const userExist = await checkUserByEmail(email)
     if (!userExist){
       return res.status(400).json({"message": "Wrong User Email"});
     }

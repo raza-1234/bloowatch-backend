@@ -11,8 +11,6 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate({users, products}) {
       // define association here
-      // this.belongsTo(products, {foreignKey: "productId"})
-      // this.belongsTo(users, {foreignKey: "userId"})
     }
   }
   cartProducts.init({
@@ -41,6 +39,14 @@ module.exports = (sequelize, DataTypes) => {
         model : "users",
         key : "id"
       }
+    },
+    createdAt: {
+      allowNull: false,
+      type: DataTypes.DATE
+    },
+    updatedAt: {
+      allowNull: false,
+      type: DataTypes.DATE
     }
   }, {
     sequelize,

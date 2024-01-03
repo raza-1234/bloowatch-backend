@@ -11,7 +11,6 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate({cartProducts}) {
       // define association here
-      // this.hasMany(cartProducts, {foreignKey: "userId", as: "userCartProducts"})
     }
 
     toJSON() {
@@ -47,6 +46,14 @@ module.exports = (sequelize, DataTypes) => {
     email_token: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    createdAt: {
+      allowNull: false,
+      type: DataTypes.DATE
+    },
+    updatedAt: {
+      allowNull: false,
+      type: DataTypes.DATE
     }
   }, {
     sequelize,

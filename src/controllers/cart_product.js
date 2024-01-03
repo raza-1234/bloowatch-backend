@@ -1,5 +1,5 @@
 const {products, cartProducts, users} = require("../sequelized/models")
-const {checkUser} = require("../utils/checkUser")
+const {checkUserById} = require("../utils/checkUser")
 
 const addToCart = async (req, res) => {
 
@@ -104,7 +104,7 @@ const getCartProducts = async (req, res) => {
   }
 
   try {
-    const userExist = await checkUser(userId);
+    const userExist = await checkUserById(userId);
     if (!userExist){
       return res.status(400).json({"message":  `userId ${userId} does not exist.`})
     }

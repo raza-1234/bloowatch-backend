@@ -26,7 +26,6 @@ app.use("/products", productRoute)
 app.use("/coupon", couponRoute)
 //buyer side 
 app.use("/cart", verifyToken ,cartRoute)
-app.use("/search-products", searchProductRoute)
 
 app.listen(process.env.PORT, async(req, res) => {
   await sequelize.authenticate()

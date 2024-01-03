@@ -1,6 +1,6 @@
 const {users} = require("../sequelized/models")
 const {verifyEmailValidation} = require("../validation/validation")
-const {checkUser} = require("../utils/checkUser")
+const {checkUserById} = require("../utils/checkUser")
 
 const verifyEmail = async (req, res) => {
 
@@ -9,12 +9,12 @@ const verifyEmail = async (req, res) => {
 
   const { id, emailToken } = validation
   try {
-    const existingUser = await checkUser(id);
+    const existingUser = await checkUserById(id);
     if (!existingUser){
       return res.status(400).json({"message":  "User Not Exist."})
     }
     
-    if (!(existingUser.email_token === emailToken)){
+    if (existingUser.email_token !== emailToken){
       return res.status(400).json({"message":  "Invalid Link"})
     }
 
