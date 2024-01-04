@@ -14,7 +14,7 @@ const addProduct = async (req, res) => {
     const newProduct = {
       title,
       quantity,
-      price,
+      price, 
       category,
       image: imagePath
     }
@@ -30,55 +30,38 @@ const getProducts = async (req, res) => {
   const category = req.query.category?.trim();
   const search = req.query.search?.trim();
   const page = Number(req.query.page) || 1;
-  const limit = Number(req.query.limit) || 100;
+  const limit = Number(req.query.limit) || 3;
+
   const skip = (page - 1) * limit
-  let totalCount;
-  let data;
+  const queryCondition = {
+    order: [['id', 'ASC']],
+    limit: limit ,
+    offset: skip
+  }
 
-  try {
-    if (!category && !search){
-      let { count, rows } = await products.findAndCountAll({
-        order: [['id', 'ASC']],
-        limit: limit ,
-        offset: skip
-      })
-      data = rows;
-      totalCount = count;
+  if (!category && search){
+    queryCondition.where = {
+      title: {
+        [Op.like]: `%${search}%`
+      }
     }
-    else if (!category){
-      let { count , rows } = await products.findAndCountAll({
-        order: [['id', 'ASC']],
-        where: {
-          title: {
-            [Op.like]: `%${search}%`
-          }
-        },
-        limit: limit,
-        offset: skip
-      });
-      data = rows;
-      totalCount = count;
+  } 
+  
+  if (category && !search){
+    queryCondition.where = {
+      category: {
+        [Op.overlap]: [category]
+      }
     }
-    else {
-      let { count, rows } = await products.findAndCountAll({
-        order: [['id', 'ASC']],
-        where: { 
-          category: {
-            [Op.overlap]: [category]
-          }
-        },
-        limit: limit,
-        offset: skip
-      })
-      totalCount = count;
-      data = rows;
-    }
+  }
 
-    if (data.length === 0){
+  try { 
+    const { count , rows } = await products.findAndCountAll(queryCondition)
+    if (rows.length === 0){
       return res.status(200).json({"message": `No Product Exist.`})
     }
 
-    const dataPagination = paging(page, limit, data, totalCount);
+    const dataPagination = paging(page, limit, rows, count);
     return res.status(200).json(dataPagination)
   } catch (err){
     console.log(err);
