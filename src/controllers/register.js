@@ -14,7 +14,6 @@ const registerUser = async (req, res) => {
   const { name, email, password } = validation
 
   try {
-
     const existingUser = await checkUserByEmail(email);
     if (existingUser){
       return res.status(400).json({"message": "Entered Email Is Already Registered."})

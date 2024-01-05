@@ -1,12 +1,8 @@
 const registerUserValidation = (req, res) => {
   const {name, email, password, confirmPassword} = req.body
   
-  if (!(name?.trim() && email?.trim() && password?.trim() && confirmPassword?.trim())){
+  if (!(name?.trim() && email?.trim() && password?.trim())){
     res.status(400).json({"message": "All Fields Are Compulsory!!!"})
-    return false;
-  }
-  else if (password !== confirmPassword){
-    res.status(400).json({"message": "Password And Confirm Password Should Be Same!!!"});
     return false;
   }
   return { name, email, password }
