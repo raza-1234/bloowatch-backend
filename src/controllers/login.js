@@ -42,7 +42,7 @@ const logIn = async(req, res) => {
       {expiresIn: "1d"}
     )
     
-    res.cookie("jwt", accessToken, {httpOnly: true, maxAge: 24 * 60 * 60 * 1000})
+    res.cookie("jwt", accessToken, { maxAge: 24 * 60 * 60 * 1000})
     return res.status(200).json({"message": "Successfully Log In."})
     
   } catch(err){

@@ -7,7 +7,7 @@ const verifyToken = (req, res, next) => {
   const authToken = req.headers.authorization
 
   if (!cookieToken?.jwt || !authToken){
-    return res.status(403).json({"message":  "You are not logged in."})
+    return res.status(401).json({"message":  "You are not logged in."})
   }
 
   const token = authToken.split(" ")[1];
@@ -21,7 +21,7 @@ const verifyToken = (req, res, next) => {
     process.env.ACCESS_SECRET_KEY,
     (err, decodeToken) => {
       if(err){
-        return res.sendStatus(403);
+        return res.status(403).send("token expire");
       }
       req.userId = decodeToken.userId;
       next();

@@ -13,7 +13,7 @@ const { verifyToken } = require("./src/middlewares/verifyToken")
 const cors = require("cors")
 require("dotenv").config();
 
-app.use(cors())
+app.use(cors({credentials: true, origin: "http://localhost:3000"}))
 app.use(cookieParser())
 app.use(express.json())
 app.use("Images", express.static("./Images"))

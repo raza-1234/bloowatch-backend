@@ -112,7 +112,8 @@ const getCartProducts = async (req, res) => {
     const cartData = await cartProducts.findAll({
       where: {
         userId 
-      }
+      },
+      include: [products]
     })
 
     if (cartData.length === 0){
