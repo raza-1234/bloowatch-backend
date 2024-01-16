@@ -19,7 +19,7 @@ module.exports = {
       },
       price: {
         allowNull: false,
-        type: DataTypes.STRING
+        type: DataTypes.INTEGER
       },
       category: {
         allowNull: false,

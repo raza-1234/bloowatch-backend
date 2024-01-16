@@ -3,11 +3,17 @@ const {checkUserById} = require("../utils/checkUser")
 
 const addToCart = async (req, res) => {
 
-  const productId = Number(req.params.productId)
-  const userId = Number(req.params.userId)
-  const tokenUserId = req.userId
+  const {
+    params: {
+      id
+    }, 
+    body:{
+      productId
+    }, 
+    userId
+  } = req;
 
-  if (userId !== tokenUserId){ 
+  if (Number(id) !== userId){ 
     return res.status(403).json({"message": "Access denied."})
   }
 
@@ -29,7 +35,7 @@ const addToCart = async (req, res) => {
     const cartItemExist = await cartProducts.findOne({
       where: {
         productId,
-        userId
+        userId: id
       }
     })
 
@@ -44,7 +50,7 @@ const addToCart = async (req, res) => {
       const newItemToCart = {
         quantity: 1,
         productId,
-        userId
+        userId: id
       }
       await cartProducts.create(newItemToCart);
       return res.status(200).json({"message": "Product added in cart."})
@@ -57,10 +63,10 @@ const addToCart = async (req, res) => {
 
 const removeFromCart = async (req, res) => {
   const productId = Number(req.params.productId)
-  const userId = Number(req.params.userId)
-  const tokenUserId = req.userId
+  const id = Number(req.params.id)
+  const { userId } = req
 
-  if (userId !== tokenUserId){ 
+  if (id !== userId){ 
     return res.status(403).json({"message": "Access denied."})
   }
 
@@ -72,7 +78,7 @@ const removeFromCart = async (req, res) => {
     const cartItemExist = await cartProducts.findOne({
       where: {
         productId,
-        userId
+        userId: id
       }
     })
 
@@ -95,24 +101,60 @@ const removeFromCart = async (req, res) => {
   }
 }
 
-const getCartProducts = async (req, res) => {
-  const userId = Number(req.params.userId);
-  const tokenUserId = req.userId
+const unCart = async (req, res) => {
+  const productId = Number(req.params.productId)
+  const id = Number(req.params.id)
+  const { userId } = req
 
-  if (userId !== tokenUserId){ 
+  if (id !== userId){ 
+    return res.status(403).json({"message": "Access denied."})
+  }
+
+  if (!productId){
+    return res.status(400).json({"message": "Required parameters should be proper number type."})
+  }
+
+  try {
+    const cartItemExist = await cartProducts.findOne({
+      where: {
+        productId,
+        userId: id
+      }
+    })
+
+    if (!cartItemExist){
+      return res.status(400).json({"message": "Product already not exist in cart."})
+    }
+
+    await cartItemExist.destroy();
+    return res.status(200).json({"message": "Item removed from cart"})
+  } catch (err){
+    console.log(err);
+    return res.status(500).send(err)
+  }
+}
+
+const getCartProducts = async (req, res) => {
+  const id = Number(req.params.id);
+  const {userId} = req
+
+  if (id !== userId){ 
     return res.status(403).json({"message": "Access denied."})
   }
 
   try {
-    const userExist = await checkUserById(userId);
+    const userExist = await checkUserById(id);
     if (!userExist){
-      return res.status(400).json({"message":  `userId ${userId} does not exist.`})
+      return res.status(400).json({"message":  `userId ${id} does not exist.`})
     }
 
     const cartData = await cartProducts.findAll({
       where: {
-        userId 
+        userId: id
       },
+      order: [
+        ['id', 'ASC'],
+      ],
       include: [products]
     })
 
@@ -129,5 +171,6 @@ const getCartProducts = async (req, res) => {
 module.exports = {
   addToCart, 
   removeFromCart,
-  getCartProducts
+  getCartProducts,
+  unCart
 }

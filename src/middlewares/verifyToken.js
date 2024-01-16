@@ -20,7 +20,7 @@ const verifyToken = (req, res, next) => {
     token,
     process.env.ACCESS_SECRET_KEY,
     (err, decodeToken) => {
-      if(err){
+      if (err){
         return res.status(403).send("token expire");
       }
       req.userId = decodeToken.userId;

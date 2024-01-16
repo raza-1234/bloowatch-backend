@@ -8,6 +8,7 @@ const verifyEmailRoute = require("./src/routes/verifyEmail")
 const productRoute = require("./src/routes/product")
 const cartRoute =require("./src/routes/cart")
 const couponRoute = require("./src/routes/coupon")
+const editUserRoute = require("./src/routes/editUser")
 const cookieParser = require("cookie-parser")
 const { verifyToken } = require("./src/middlewares/verifyToken")
 const cors = require("cors")
@@ -27,6 +28,7 @@ app.use("/products", productRoute)
 app.use("/coupon", couponRoute)
 //buyer side 
 app.use("/cart", verifyToken ,cartRoute)
+app.use("/edit-user", verifyToken ,editUserRoute)
 
 app.listen(process.env.PORT, async(req, res) => {
   await sequelize.authenticate()

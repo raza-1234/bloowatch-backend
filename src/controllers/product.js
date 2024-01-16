@@ -1,12 +1,11 @@
-const {products} = require("../sequelized/models");
-const {Op} = require("sequelize")
+const {products, cartProducts} = require("../sequelized/models");
+const {Op, where} = require("sequelize")
 const paging = require("../utils/pagination")
 
 const addProduct = async (req, res) => {
-  const { title, quantity, price, category } = req.body;
-  const imagePath = req.file.path;
+  const { title, quantity, price, category, image } = req.body;
 
-  if (!(title?.trim() && quantity && price?.trim() && category?.trim())){
+  if (!(title?.trim() && quantity && price && category[0])){
     return res.status(400).json({"message": "Required cannot be empty."})
   }
 
@@ -16,7 +15,7 @@ const addProduct = async (req, res) => {
       quantity,
       price, 
       category,
-      image: imagePath
+      image
     }
     const addNewProduct = await products.create(newProduct);
     return res.status(200).json(addNewProduct)
@@ -31,10 +30,20 @@ const getProducts = async (req, res) => {
   const search = req.query.search?.trim();
   const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 3;
+  const {userId} = req
 
   const skip = (page - 1) * limit
   const queryCondition = {
     order: [['id', 'ASC']],
+    include: [
+      {
+        model: cartProducts,
+        where: {
+          userId
+        },
+        required: false
+      }
+    ],
     limit: limit ,
     offset: skip
   }
@@ -56,6 +65,7 @@ const getProducts = async (req, res) => {
   }
 
   try { 
+
     const { count , rows } = await products.findAndCountAll(queryCondition)
     if (rows.length === 0){
       return res.status(200).json({"message": `No Product Exist.`})
