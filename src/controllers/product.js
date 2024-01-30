@@ -26,15 +26,28 @@ const addProduct = async (req, res) => {
 }
 
 const getProducts = async (req, res) => {
-  const category = req.query.category?.trim();
-  const search = req.query.search?.trim();
-  const page = Number(req.query.page) || 1;
-  const limit = Number(req.query.limit) || 3;
+  const category = req.query?.category?.trim();
+  const search = req.query?.search?.trim();
+  const page = Number(req.query?.page) || 1;
+  const limit = Number(req.query?.limit) || 3;
+  const price = req.query?.price;
+  console.log(price);
+  const minPrice = Number(price?.[0]) || 0;
+  console.log(minPrice);
+  const maxPrice = Number(price?.[1]) || 100000;
+  console.log(maxPrice)
   const {userId} = req
+
+  console.log(page);
 
   const skip = (page - 1) * limit
   const queryCondition = {
     order: [['id', 'ASC']],
+    where: {
+      price: {
+        [Op.between]: [minPrice, maxPrice]
+      }
+    },
     include: [
       {
         model: cartProducts,
@@ -50,17 +63,31 @@ const getProducts = async (req, res) => {
 
   if (!category && search){
     queryCondition.where = {
-      title: {
-        [Op.like]: `%${search}%`
-      }
+      [Op.and]: [
+        {
+          price: {
+            [Op.between]: [minPrice, maxPrice]
+          },
+          title: {
+            [Op.like]: `%${search}%`
+          }
+        }
+      ]
     }
   } 
   
   if (category && !search){
     queryCondition.where = {
-      category: {
-        [Op.overlap]: [category]
-      }
+      [Op.and]: [
+        {
+          category: {
+            [Op.overlap]: [category]
+          },
+          price: {
+            [Op.between]: [minPrice, maxPrice]
+          }
+        }
+      ]
     }
   }
 
@@ -68,7 +95,7 @@ const getProducts = async (req, res) => {
 
     const { count , rows } = await products.findAndCountAll(queryCondition)
     if (rows.length === 0){
-      return res.status(200).json({"message": `No Product Exist.`})
+      return res.status(200).json({message: 'No Product Found.', data: [], paging: {}})
     }
 
     const dataPagination = paging(page, limit, rows, count);
@@ -79,7 +106,37 @@ const getProducts = async (req, res) => {
   }
 }
 
+const getProduct = async (req, res) => {
+  const {productId} = req.params;
+  const {userId} = req;
+  
+  try {
+    const product = await products.findOne({
+      where: {
+        id: productId
+      },
+      include: [
+        {
+          model: cartProducts,
+          where: {
+            userId
+          },
+          required: false
+        }
+      ],
+    })
+
+    if (!product){
+      return res.status(400).json({"message": "product not found."})
+    }
+    return res.status(200).json(product)
+  } catch (err){
+
+  }
+}
+
 module.exports = {
   addProduct,
-  getProducts
+  getProducts,
+  getProduct
 }

@@ -35,16 +35,13 @@ const logIn = async(req, res) => {
 
     const accessToken = jwt.sign(
       {
-        "userEmail": userExist.email,
-        "userId": userExist.id,
-        "userName": userExist.name
+        "userId": userExist.id
       },
       process.env.ACCESS_SECRET_KEY,
       {expiresIn: "1d"}
     )
     
-    res.cookie("jwt", accessToken, { maxAge: 24 * 60 * 60 * 1000})
-    return res.status(200).json({"message": "Successfully Log In."})
+    return res.status(200).json({"message": "Successfully Log In.", accessToken})
     
   } catch(err){
     console.log(err);

@@ -3,18 +3,14 @@ require("dotenv").config();
 
 const verifyToken = (req, res, next) => {
 
-  const cookieToken = req.cookies
+  console.log("in verify token middle wareeeeee....");
   const authToken = req.headers.authorization
 
-  if (!cookieToken?.jwt || !authToken){
+  if (!authToken){
     return res.status(401).json({"message":  "You are not logged in."})
   }
 
   const token = authToken.split(" ")[1];
-
-  if (cookieToken.jwt !== token){
-    return res.status(403).json({"message": "Header's token does not match with token in cookie."})
-  }
 
   jwt.verify(
     token,

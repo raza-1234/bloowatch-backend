@@ -36,7 +36,7 @@ const checkCoupons = async (req,res) => {
     })
 
     if (!couponExist){
-      return res.status(400).json({"message": "Invalid coupan."})
+      return res.status(400).json({"message": "Invalid coupon."})
     }
     return res.status(200).json(couponExist)
 

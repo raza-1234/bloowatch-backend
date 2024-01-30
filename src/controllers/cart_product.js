@@ -1,14 +1,14 @@
-const {products, cartProducts, users} = require("../sequelized/models")
+const {products, cartProducts} = require("../sequelized/models")
 const {checkUserById} = require("../utils/checkUser")
 
 const addToCart = async (req, res) => {
-
   const {
     params: {
       id
     }, 
     body:{
-      productId
+      productId,
+      quantity,
     }, 
     userId
   } = req;
@@ -40,20 +40,24 @@ const addToCart = async (req, res) => {
     })
 
     if (cartItemExist){
-      if (productExist.quantity > cartItemExist.quantity){
-        cartItemExist.quantity ++;
+      if (productExist.quantity >= (cartItemExist.quantity + quantity)){
+        cartItemExist.quantity = cartItemExist.quantity + quantity;
         await cartItemExist.save();
         return res.status(200).json({"message":  "Product added in cart."})
       } 
       return res.status(400).json({"message": "Product is out of stock."});
     } else {
-      const newItemToCart = {
-        quantity: 1,
-        productId,
-        userId: id
+      if (productExist.quantity >= quantity){
+        const newItemToCart = {
+          quantity,
+          productId,
+          userId: id
+        }
+        await cartProducts.create(newItemToCart);
+        return res.status(200).json({"message": "Product added in cart."})
       }
-      await cartProducts.create(newItemToCart);
-      return res.status(200).json({"message": "Product added in cart."})
+
+      return res.status(400).json({"message": "Product is out of stock."});
     }
   } catch (err){
     console.log(err);
@@ -61,20 +65,37 @@ const addToCart = async (req, res) => {
   }
 }
 
-const removeFromCart = async (req, res) => {
-  const productId = Number(req.params.productId)
-  const id = Number(req.params.id)
-  const { userId } = req
+const updateCart = async (req, res) => {
+  const {
+    params: {
+      id
+    }, 
+    body:{
+      productId,
+      quantity,
+    }, 
+    userId
+  } = req;
 
-  if (id !== userId){ 
+  if (Number(id) !== userId){ 
     return res.status(403).json({"message": "Access denied."})
   }
 
   if (!productId){
     return res.status(400).json({"message": "Required parameters should be proper number type."})
   }
-
+  
   try {
+    const productExist = await products.findOne({
+      where: {
+        id: productId
+      }
+    })
+
+    if (!productExist){
+      return res.status(400).json({"message":`Required product not found.`})
+    }
+
     const cartItemExist = await cartProducts.findOne({
       where: {
         productId,
@@ -82,26 +103,19 @@ const removeFromCart = async (req, res) => {
       }
     })
 
-    if (!cartItemExist){
-      return res.status(400).json({"message": "Product already not exist in cart."})
-    }
-
-    if (cartItemExist.quantity > 1){
-      cartItemExist.quantity --;
+    if (productExist.quantity >= (quantity)){
+      cartItemExist.quantity = quantity;
       await cartItemExist.save();
-    }
-    else {
-      await cartItemExist.destroy();
-    }
-
-    return res.status(200).json({"message": "Item removed from cart"})
+      return res.status(200).json({"message":  "Product added in cart."})
+    } 
+    return res.status(400).json({"message": "Product is out of stock."});
   } catch (err){
     console.log(err);
-    return res.status(500).send(err)
+    return res.status(500).json({"errorMessage": err})
   }
 }
 
-const unCart = async (req, res) => {
+const removeFromCart = async (req, res) => {
   const productId = Number(req.params.productId)
   const id = Number(req.params.id)
   const { userId } = req
@@ -170,7 +184,7 @@ const getCartProducts = async (req, res) => {
 
 module.exports = {
   addToCart, 
-  removeFromCart,
   getCartProducts,
-  unCart
+  removeFromCart,
+  updateCart
 }
