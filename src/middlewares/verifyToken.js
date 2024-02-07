@@ -2,18 +2,24 @@ const jwt = require("jsonwebtoken")
 require("dotenv").config();
 
 const verifyToken = (req, res, next) => {
-  const cookie = req.cookies;
-  if (!cookie?.jwt){ 
-    return res.status(403).send("You Are Logged Out")
+
+  console.log("in verify token middle wareeeeee....");
+  const authToken = req.headers.authorization
+
+  if (!authToken){
+    return res.status(401).json({"message":  "You are not logged in."})
   }
-  const token = cookie.jwt
+
+  const token = authToken.split(" ")[1];
+
   jwt.verify(
     token,
     process.env.ACCESS_SECRET_KEY,
-    (err) => {
-      if(err){
-        return res.sendStatus(403);
+    (err, decodeToken) => {
+      if (err){
+        return res.status(403).send("token expire");
       }
+      req.userId = decodeToken.userId;
       next();
     }
   )
