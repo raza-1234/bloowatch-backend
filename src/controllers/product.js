@@ -6,7 +6,9 @@ const addProduct = async (req, res) => {
   const { title, quantity, price, category, image } = req.body;
 
   if (!(title?.trim() && quantity && price && category[0])){
-    return res.status(400).json({"message": "Required cannot be empty."})
+    res.status(400)
+    res.json({"message": "Required cannot be empty."})
+    return;
   }
 
   try {
@@ -18,10 +20,13 @@ const addProduct = async (req, res) => {
       image
     }
     const addNewProduct = await products.create(newProduct);
-    return res.status(200).json(addNewProduct)
+    res.status(200)
+    res.json(addNewProduct)
+    return;
   }catch (err){
-    console.log(err);
-    return res.status(500).json({"errorMessage": err})
+    res.status(500)
+    res.json({"errorMessage": err})
+    return;
   }
 }
 
@@ -31,14 +36,9 @@ const getProducts = async (req, res) => {
   const page = Number(req.query?.page) || 1;
   const limit = Number(req.query?.limit) || 3;
   const price = req.query?.price;
-  console.log(price);
   const minPrice = Number(price?.[0]) || 0;
-  console.log(minPrice);
   const maxPrice = Number(price?.[1]) || 100000;
-  console.log(maxPrice)
   const {userId} = req
-
-  console.log(page);
 
   const skip = (page - 1) * limit
   const queryCondition = {
@@ -92,17 +92,21 @@ const getProducts = async (req, res) => {
   }
 
   try { 
-
     const { count , rows } = await products.findAndCountAll(queryCondition)
     if (rows.length === 0){
-      return res.status(200).json({message: 'No Product Found.', data: [], paging: {}})
+      res.status(200)
+      res.json({message: 'No Product Found.', data: [], paging: {}})
+      return;
     }
 
     const dataPagination = paging(page, limit, rows, count);
-    return res.status(200).json(dataPagination)
+    res.status(200)
+    res.json(dataPagination)
+    return;
   } catch (err){
-    console.log(err);
-    return res.status(500).json({"message": err})
+    res.status(500)
+    res.json({"message": err})
+    return;
   }
 }
 
@@ -127,11 +131,17 @@ const getProduct = async (req, res) => {
     })
 
     if (!product){
-      return res.status(400).json({"message": "product not found."})
+      res.status(404)
+      res.json({"message": "product not found."})
+      return;
     }
-    return res.status(200).json(product)
+    res.status(200)
+    res.json(product)
+    return
   } catch (err){
-
+    res.status(500)
+    res.json({"message": err})
+    return
   }
 }
 

@@ -12,7 +12,7 @@ const checkUserById = async (id) => {
     }
     return userExist;
   } catch (err){
-    console.log(err);
+    throw new Error(err)
   }
 };
 
@@ -28,7 +28,7 @@ const checkUserByEmail = async (email) => {
     }
     return userExist;
   } catch (err){
-    console.log(err);
+    throw new Error(err)
   }
 };
 

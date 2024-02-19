@@ -11,21 +11,25 @@ const verifyEmail = async (req, res) => {
   try {
     const existingUser = await checkUserById(id);
     if (!existingUser){
-      return res.status(400).json({"message":  "User Not Exist."})
+      res.status(404).json({"message":  "User Not Exist."})
+      return
     }
     
     if (existingUser.email_token !== emailToken){
-      return res.status(400).json({"message":  "Invalid Link"})
+      res.status(403).json({"message":  "Invalid Link"})
+      return;
     }
 
     existingUser.verified = true;
     existingUser.email_token = ""
     await existingUser.save();
 
-    return res.status(200).json({"message": "Email Verified Successfully."})
+    res.status(200).json({"message": "Email Verified Successfully."})
+    return;
   } catch (err){
     console.log(err);
-    return res.status(500).json({"errorMessage": err})
+    res.status(500).json({"errorMessage": err})
+    return;
   }
 }
 

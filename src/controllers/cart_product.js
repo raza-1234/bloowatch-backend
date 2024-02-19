@@ -1,7 +1,8 @@
-const {products, cartProducts} = require("../sequelized/models")
-const {checkUserById} = require("../utils/checkUser")
+const { products, cartProducts } = require("../sequelized/models")
+const { checkUserById } = require("../utils/checkUser")
 
 const addToCart = async (req, res) => {
+   
   const {
     params: {
       id
@@ -18,7 +19,8 @@ const addToCart = async (req, res) => {
   }
 
   if (!productId){
-    return res.status(400).json({"message": "Required parameters should be proper number type."})
+    res.status(400).json({"message": "Product Id not found."})
+    return;
   }
   
   try {
@@ -33,7 +35,7 @@ const addToCart = async (req, res) => {
     }
 
     const cartItemExist = await cartProducts.findOne({
-      where: {
+      where: { 
         productId,
         userId: id
       }
@@ -43,7 +45,8 @@ const addToCart = async (req, res) => {
       if (productExist.quantity >= (cartItemExist.quantity + quantity)){
         cartItemExist.quantity = cartItemExist.quantity + quantity;
         await cartItemExist.save();
-        return res.status(200).json({"message":  "Product added in cart."})
+        res.status(200).json({"message":  "Product added in cart."})
+        return;
       } 
       return res.status(400).json({"message": "Product is out of stock."});
     } else {
@@ -54,13 +57,11 @@ const addToCart = async (req, res) => {
           userId: id
         }
         await cartProducts.create(newItemToCart);
-        return res.status(200).json({"message": "Product added in cart."})
+        return res.status(200).json({"message": "Product added in cart."});
       }
-
       return res.status(400).json({"message": "Product is out of stock."});
     }
   } catch (err){
-    console.log(err);
     return res.status(500).json({"errorMessage": err})
   }
 }
@@ -78,11 +79,13 @@ const updateCart = async (req, res) => {
   } = req;
 
   if (Number(id) !== userId){ 
-    return res.status(403).json({"message": "Access denied."})
+    res.status(403).json({"message": "Access denied."})
+    return;
   }
 
   if (!productId){
-    return res.status(400).json({"message": "Required parameters should be proper number type."})
+    res.status(400).json({"message": "Product Id not found."})
+    return
   }
   
   try {
@@ -93,7 +96,8 @@ const updateCart = async (req, res) => {
     })
 
     if (!productExist){
-      return res.status(400).json({"message":`Required product not found.`})
+      res.status(400).json({"message":`Required product not found.`})
+      return;
     }
 
     const cartItemExist = await cartProducts.findOne({
@@ -106,12 +110,14 @@ const updateCart = async (req, res) => {
     if (productExist.quantity >= (quantity)){
       cartItemExist.quantity = quantity;
       await cartItemExist.save();
-      return res.status(200).json({"message":  "Product added in cart."})
+      res.status(200).json({"message":  "Product added in cart."})
+      return;
     } 
-    return res.status(400).json({"message": "Product is out of stock."});
+    res.status(400).json({"message": "Product is out of stock."});
+    return;
   } catch (err){
-    console.log(err);
-    return res.status(500).json({"errorMessage": err})
+    res.status(500).json({"errorMessage": err})
+    return;
   }
 }
 
@@ -121,11 +127,13 @@ const removeFromCart = async (req, res) => {
   const { userId } = req
 
   if (id !== userId){ 
-    return res.status(403).json({"message": "Access denied."})
+    res.status(403).json({"message": "Access denied."})
+    return;
   }
 
   if (!productId){
-    return res.status(400).json({"message": "Required parameters should be proper number type."})
+    res.status(400).json({"message": "Required parameters should be proper number type."})
+    return;
   }
 
   try {
@@ -137,14 +145,16 @@ const removeFromCart = async (req, res) => {
     })
 
     if (!cartItemExist){
-      return res.status(400).json({"message": "Product already not exist in cart."})
+      res.status(400).json({"message": "Product already not exist in cart."})
+      return;
     }
 
     await cartItemExist.destroy();
-    return res.status(200).json({"message": "Item removed from cart"})
+    res.status(200).json({"message": "Item removed from cart"})
+    return;
   } catch (err){
-    console.log(err);
-    return res.status(500).send(err)
+    res.status(500).json({"errorMessage": err})
+    return;
   }
 }
 
@@ -153,13 +163,15 @@ const getCartProducts = async (req, res) => {
   const {userId} = req
 
   if (id !== userId){ 
-    return res.status(403).json({"message": "Access denied."})
+    res.status(403).json({"message": "Access denied."})
+    return;
   }
 
   try {
     const userExist = await checkUserById(id);
     if (!userExist){
-      return res.status(400).json({"message":  `userId ${id} does not exist.`})
+      res.status(400).json({"message":  `userId ${id} does not exist.`})
+      return;
     }
 
     const cartData = await cartProducts.findAll({
@@ -173,12 +185,14 @@ const getCartProducts = async (req, res) => {
     })
 
     if (cartData.length === 0){
-      return res.status(200).json({"message": `No data exists in the cart for the required user.`})
+      res.status(200).json({"message": `No data exists in the cart for the required user.`})
+      return;
     }
-    return res.status(200).json(cartData)
+    res.status(200).json(cartData)
+    return;
   } catch (err){
-    console.log(err);
-    return res.status(500).json({"message": err})
+    res.status(500).json({"message": err})
+    return;
   }
 }
 
