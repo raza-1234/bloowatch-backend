@@ -1,5 +1,6 @@
-const {users} = require("../sequelized/models");
+const { users } = require("../sequelized/models");
 const bcrypt = require("bcrypt")
+const { checkUserByEmail } = require("../utils/checkUser")
 
 const editUser = async (req,  res) => {
   const {
@@ -10,19 +11,18 @@ const editUser = async (req,  res) => {
   } = req.body;
 
   try {
-    const userExist =  await users.findOne({
-      where: {
-        email
-      }
-    })
+    
+    const userExist = await checkUserByEmail(email)
 
     if (!userExist){
-      return res.status(404).json({"message": "user does not exist"});
+      res.status(404).json({"message": "user does not exist"});
+      return;
     }
 
     const match = await bcrypt.compare(currentPassword, userExist.password)
     if (!match){
-      return res.status(400).json({"message": "Wrong Password."});
+      res.status(400).json({"message": "Wrong Password."});
+      return;
     }
 
     const updateUser = {
@@ -37,11 +37,12 @@ const editUser = async (req,  res) => {
       updateUser.password = encryptedPassword;
     }
     await userExist.update(updateUser);
-    return res.status(200).json({"message": "Changes Saved."})
+    res.status(200).json({"message": "Changes Saved."})
+    return;
     
   } catch (err){
-    console.log(err);
-    return res.status(500).json({"message": err.message})
+    res.status(500).json({"message": err.message})
+    return;
   }
 }
 

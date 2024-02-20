@@ -1,4 +1,3 @@
-
 const paging = (page, limit, data, totalCount) => {
   const totalPage = Math.ceil(totalCount/limit)
   const pagingInfo = {

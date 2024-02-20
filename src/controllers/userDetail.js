@@ -1,9 +1,8 @@
 const {users} = require("../../src/sequelized/models")
 const {checkUserById} = require("../utils/checkUser")
 
-const userDetail = async(req, res) => {
+const userDetail = async (req, res) => {
 
-  console.log("in user detailllll");
   const {
     params: {
       id
@@ -12,17 +11,22 @@ const userDetail = async(req, res) => {
   } = req 
 
   if (Number(id) !== userId){ 
-    return res.status(403).json({"message": "Access denied."})
+    res.status(403).json({"message": "Access denied."})
+    return;
   }
 
   try {
     const existingUser = await checkUserById(id);
     if (!existingUser){
-      return res.status(400).json({"message":  "User Not Exist."})
+      res.status(400).json({"message":  "User Not Exist."})
+      return;
     }
-    return res.status(200).json({name: existingUser.name, email: existingUser.email, id: existingUser.id})
+    res.status(200).json({name: existingUser.name, email: existingUser.email, id: existingUser.id})
+    return;
   }catch (err) {
-    console.log(err);
+    // console.log(err);
+    res.status(500).json({"message": err})
+    return
   }
 }
 

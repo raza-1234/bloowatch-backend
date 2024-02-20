@@ -15,25 +15,28 @@ const logIn = async(req, res) => {
   try  {
     const userExist = await checkUserByEmail(email)
     if (!userExist){
-      return res.status(400).json({"message": "Wrong User Email"});
+      res.status(400).json({"message": "Wrong User Email"});
+      return;
     }
 
     const passwordMatch = await bcrypt.compare(password, userExist.password)
     if (!passwordMatch){
-      return res.status(400).json({"message": "Wrong Password"});
+      res.status(400).json({"message": "Wrong Password"});
+      return;
     }
 
     if (!userExist.verified){
-      if (!userExist.email_token){
-        userExist.email_token = crypto.randomBytes(8).toString("hex");
+      if (!userExist.email_token){ //this code block can be removed
+        userExist.email_token = crypto.randomBytes(3).toString("hex");
         await userExist.save()
         const url = `${process.env.BASE_URL}/verify_email/${registerNewUser.id}`;
         await sendEmail(userExist.email, "Verify Email By Entering The Provided-Token Code In Website", url, userExist.email_token)
       }
-      return res.status(400).json({"message": "First Verify Your Email.An Email Is Sent To Your Account. Please Verify It."})
+      res.status(400).json({"message": "First Verify Your Email.An Email Is Sent To Your Account. Please Verify It."})
+      return;
     }
 
-    const accessToken = jwt.sign(
+    const accessToken = await jwt.sign(
       {
         "userId": userExist.id
       },
@@ -41,11 +44,11 @@ const logIn = async(req, res) => {
       {expiresIn: "1d"}
     )
     
-    return res.status(200).json({"message": "Successfully Log In.", accessToken})
+    res.status(200).json({"message": "Successfully Log In.", accessToken})
+    return;
     
   } catch(err){
-    console.log(err);
-    return res.status(500).json({"message": err})
+    res.status(500).json({"message": err})
   } 
 }
 

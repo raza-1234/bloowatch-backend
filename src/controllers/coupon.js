@@ -1,10 +1,11 @@
 const { coupons } = require("../sequelized/models")
 
 const createCoupons = async (req, res) => {
-  const { name, discountPercentage } = req.body;
+  const { name, discountPercentage } = req.body; //name: couponCode
 
   if (!(name?.trim() && discountPercentage)){
-    return res.status(400).json({"message": "Required Fields Are Not Found."})
+    res.status(400).json({"message": "Required Fields Are Not Found."})
+    return;
   }
 
   const newCoupon =  {
@@ -14,10 +15,11 @@ const createCoupons = async (req, res) => {
 
   try {
     await coupons.create(newCoupon)
-    return res.status(200).json({"message": `Coupon ${newCoupon.name} is successfully added.`});
+    res.status(200).json({"message": `Coupon ${newCoupon.name} is successfully added.`});
+    return;
   } catch (err){
-    console.log(err);
-    return res.status(500).json({"message": err})
+    res.status(500).json({"message": err})
+    return;
   }
 }
 
@@ -25,7 +27,8 @@ const checkCoupons = async (req,res) => {
   const { name } = req.params;
 
   if (!name.trim()){
-    return res.status(400).json({"message": "Required parameter is not found."})
+    res.status(400).json({"message": "Required parameter is not found."})
+    return;
   }
 
   try {
@@ -36,13 +39,15 @@ const checkCoupons = async (req,res) => {
     })
 
     if (!couponExist){
-      return res.status(400).json({"message": "Invalid coupon."})
+      res.status(400).json({"message": "Invalid coupon."})
+      return;
     }
-    return res.status(200).json(couponExist)
+    res.status(200).json(couponExist)
+    return;
 
   } catch (err){
-    console.log(err);
-    return res.status(500).json({"message": err})
+    res.status(500).json({"message": err})
+    return
   }
 }
 
